@@ -16,7 +16,8 @@ from scipy.io import wavfile
 from math import isclose
 
 
-filename = "/Users/casa/gqrx_20170403_122504_415311300.wav"
+# filename = "./gqrx_20170403_122504_415311300.wav"
+filename = "/Users/casa/gqrx_20170404_123132_415311300 copia.wav"
 channel = 0
 
 mark = 1300
@@ -40,25 +41,32 @@ for cycle in cycles:
     if amplitude >= amplitude_threshold:
         if numpy.isclose(frequency, space, atol=frequency_tolerance): bit = 0
         elif numpy.isclose(frequency, mark, atol=frequency_tolerance): bit = 1
-    burst += [(bit, len(cycle))]
+    burst += [(bit, len(cycle), frequency)]
 
     if bit is None and burst != []:
         bursts += [burst]
         burst = []
 
 tuples = sum(bursts, [])
-print(tuples)
-signal = [[x[0]] * x[1] for x in tuples]
+signal = sum([[(x[0]*500 if x[0] is not None else 0) + 2500] * x[1] for x in tuples], [])
+# signal = sum([[(x[0]*500 if x[0] is not None else 0) + 2500] * (x[1]-1) + [0] for x in tuples], [])
+frequencies = sum([[x[2]+2100] * x[1] for x in tuples], [])
 
 import matplotlib.pyplot as plt
+plt.plot(range(len(frequencies)),frequencies)
 plt.plot(range(len(signal)), signal)
 plt.plot(range(len(raw)), raw)
+plt.plot(range(len(raw)), [1300+2100]*len(raw))
+plt.plot(range(len(raw)), [2100+2100]*len(raw))
 plt.show()
 
-# for i in textbursts:
-#     match = re.search(r'^(1{10,1000})(.+)(1{10,1000})$', i)
-#     print(i)
-#     try:
-#         print("{PREAMBLE: {}; DATA {}; ENDING: {};}".format(match.group(1), match.group(2), match.group(3)))
-#     except:
-#         pass
+# for burst in bursts:
+#     burst = ''.join([str(x[0]) for x in burst])
+#     match = re.search(r'^(1{10,250})(.+)(1{10,150})$', burst)
+#     try: print(match.group(2))
+#     except: pass
+#     # print(i)
+#     # try:
+#     #     print("{PREAMBLE: {}; DATA {}; ENDING: {};}".format(match.group(1), match.group(2), match.group(3)))
+#     # except:
+#     #     pass
